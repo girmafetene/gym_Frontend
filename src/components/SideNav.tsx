@@ -41,8 +41,8 @@ const MenuList = [
     icon: <ShoppingBasket className="h-5 w-5" />,
   },
   {
-    name: "Lookup",
-    path: "Lookup",
+    name: "Schedule",
+    path: "Schedules",
     icon: <LocateIcon className="h-5 w-5" />,
   },
   {
@@ -51,11 +51,11 @@ const MenuList = [
     icon: <CaravanIcon className="h-5 w-5" />,
   },
   {
-    name: "Messages",
-    path: "Messages",
+    name: "User",
+    path: "UserMember",
     icon: <UserCheck2 className="h-5 w-5" />,
   },
-  
+
 ];
 
 const SideNav = () => {

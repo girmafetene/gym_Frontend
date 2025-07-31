@@ -1,7 +1,7 @@
 // src/context/AuthContext.tsx
 import { createContext, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiService } from '../api/apiService';
+
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -48,25 +48,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 // Mock API function - replace with real API call
 const mockLoginApi = (email: string, password: string) => {
   return new Promise<{ success: boolean; token?: string; message?: string }>(async (resolve) => {
-    var user={
-        email: email,
-        password: password
-     }
-    await apiService.create("auth/login", user).then(Response=>{
-       console.log(Response?.data)
-       if(Response?.data.success==true)
-       {
-        localStorage.setItem("email",email)
-        resolve({ success: true, token: 'dummy-token' });
-       }
-       else{
-        resolve({ success: false, message: 'Invalid credentials' });
-       }
-    }); // ⬅️ use `createForm` (custom)
-     
-   
-  
-    
+    var user = {
+      email: email,
+      password: password
+    }
+    // await apiService.create("auth/login", user).then(Response=>{
+    //    console.log(Response?.data)
+    //    if(Response?.data.success==true)
+    //    {
+    //     localStorage.setItem("email",email)
+    //     resolve({ success: true, token: 'dummy-token' });
+    //    }
+    //    else{
+    //     resolve({ success: false, message: 'Invalid credentials' });
+    //    }
+    // }); // ⬅️ use `createForm` (custom)
+
+
+
+
     // setTimeout(() => {
     //   if (email === 'g1@gmail.com' && password === '123456') {
     //     resolve({ success: true, token: 'dummy-token' });

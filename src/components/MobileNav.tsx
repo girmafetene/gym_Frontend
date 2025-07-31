@@ -35,8 +35,8 @@ const MobileNav = () => {
       icon: <ShoppingBasket className="h-5 w-5" />,
     },
     {
-      name: "Lookup",
-      path: "Lookup",
+      name: "Schedule",
+      path: "Schedules",
       icon: <LocateIcon className="h-5 w-5" />,
     },
     {
@@ -45,10 +45,12 @@ const MobileNav = () => {
       icon: <CaravanIcon className="h-5 w-5" />,
     },
     {
-      name: "Users",
-      path: "Users",
+      name: "User",
+      path: "UserMember",
       icon: <UserCheck2 className="h-5 w-5" />,
     },
+
+
   ];
 
   return (

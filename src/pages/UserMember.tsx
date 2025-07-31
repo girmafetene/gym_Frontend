@@ -1,23 +1,31 @@
 import { useEffect, useState } from "react";
 import { createApiServiceHook } from "../hooks/createApiServiceHook";
 import { Item } from "../types/WorkoutPlan";
-import AddAndEditDrawer from "../components/AddAndEditDrawer";
-import { Input, Checkbox, Form, Row, Col, InputNumber, Button, Popconfirm, message, Table } from 'antd';
+import { Input, Checkbox, Form, Button, Popconfirm, message, Table, Select } from 'antd';
 import { DeleteFilled, PlusOutlined } from '@ant-design/icons';
 import { ColumnsType } from "antd/es/table";
 import { Edit2Icon } from "lucide-react";
+import { User } from "../types/User";
+import AddAndEditDrawer from "../components/AddAndEditDrawer";
+const { Option } = Select;
 
 
-
-const Product = () => {
-  const useItemService = createApiServiceHook<Item>('items');
-  const [items, setItems] = useState<Item[]>([]);
+const UserMember = () => {
+  const UserRole = [
+    'MEMBER',
+    "Trainer",
+    'Admin'
+  ]
+  const UserService = createApiServiceHook<User>('users');
+  const [items, setItems] = useState<User[]>([]);
   const [open, setOpen] = useState(false);
-  const [drawerTitle, setDrawerTitle] = useState("Add Products");
+  const [drawerTitle, setDrawerTitle] = useState("Add User");
   const [form] = Form.useForm();
   const [id, setId] = useState('')
   const [loading, setLoading] = useState(true)
-
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [value, setValue] = useState(UserRole[0]);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -28,7 +36,7 @@ const Product = () => {
     create,
     update,
     delete: deleteById,
-  } = useItemService();
+  } = UserService();
 
   // Fetch all items on mount
   useEffect(() => {
@@ -44,7 +52,7 @@ const Product = () => {
       });
 
       if (response.success && response.data) {
-        setItems(response.data?.items as Item[]);
+        setItems(response.data?.items as User[]);
         setPagination({
           current: page,
           pageSize: pageSize,
@@ -81,7 +89,17 @@ const Product = () => {
           }
         } else {
           // Create new item
-          const response = await create(values);
+          const formData = new FormData();
+          formData.append('fullName', values.fullName);
+          formData.append('email', values.email);
+          formData.append('phone', values.phone);
+          formData.append('password', values.password);
+          formData.append('role', values.role);
+          formData.append('image', imageFile as File);
+
+
+          //values.imagePath = imageFile; // Use the file path or URL
+          const response = await create(formData as unknown as User);
           if (response.success && response.data) {
             if (Array.isArray(response.data)) {
               setItems([...items, ...response.data]);
@@ -99,29 +117,72 @@ const Product = () => {
       });
   };
 
-  const ProductForm = () => (
+
+  const onChange = (value: string) => {
+    setValue(value);
+  }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      console.log(file)
+      // You keep the binary file here
+      setPreviewUrl(URL.createObjectURL(file)); // Preview using object URL
+    }
+  };
+
+  const UserForm = () => (
     <Form form={form} layout="vertical">
-      <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Please enter Name' }]}>
+      <Form.Item label="Full Name" name="fullName" rules={[{ required: true, message: 'Please enter Full Name' }]}>
         <Input />
       </Form.Item>
-      <Form.Item label="Description" name="description">
+      <Form.Item label="Email" name="email">
         <Input />
       </Form.Item>
-      <Form.Item label="Category" name="category">
+      <Form.Item label="Phone No" name="phone">
         <Input />
       </Form.Item>
-      <Form.Item
-        label="Is Available"
-        name="isAvailable"
-        valuePropName="checked"
-      >
-        <Checkbox />
+      <Form.Item label="Password" name="password" rules={[{ required: true, message: 'Please enter Password' }]}>
+        <Input type="password" />
       </Form.Item>
-    </Form>
+      {/* <Form.Item label="Confirm Password" name="createdAt" rules={[{ required: true, message: 'Please enter Confirm Password' }]}>
+        <Input type="password" />
+      </Form.Item> */}
+
+      <Form.Item label="User Role" name="role" rules={[{ required: true, message: 'Please select role' }]}>
+        <Select
+          placeholder="Select user role"
+          value={value}
+          onChange={onChange}
+          style={{ width: 200 }}
+        >
+          {Object.values(UserRole).map((role) => (
+            <Option key={role} value={role}>
+              {role}
+            </Option>
+          ))}
+        </Select>
+      </Form.Item>
+      <Form.Item label="Image Path" name="imagePath">
+        <div className="p-4">
+          <input type="file" accept="image/*" onChange={handleFileChange} />
+          {previewUrl && (
+            <div className="mt-4">
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="w-64 h-64 object-cover rounded border"
+              />
+            </div>
+          )}
+        </div>
+      </Form.Item>
+
+    </Form >
   );
 
   const onEdit = async (item: Item) => {
-    setDrawerTitle("Edit Product");
+    setDrawerTitle("Edit User");
     form.setFieldsValue(item);
     setId(item?.id)
     setOpen(true);
@@ -139,7 +200,6 @@ const Product = () => {
         setItems(prevItems);
         throw new Error('Delete failed');
       }
-
       message.success('Item deleted successfully');
       form.resetFields();
       setId('');
@@ -151,28 +211,28 @@ const Product = () => {
     }
   };
 
-  const columns: ColumnsType<Item> = [
+  const columns: ColumnsType<User> = [
     {
-      title: 'Name',
-      dataIndex: 'name',
+      title: 'Full Name',
+      dataIndex: 'fullName',
       width: 300,
       sorter: {
-        compare: (a, b) => a?.name.localeCompare(b?.name),
+        compare: (a, b) => a?.fullName.localeCompare(b?.fullName),
       },
     },
     {
-      title: 'Description',
-      dataIndex: 'description',
+      title: 'Email',
+      dataIndex: 'email',
       width: 300,
       sorter: {
-        compare: (a, b) => a?.description.localeCompare(b?.description),
+        compare: (a, b) => a?.email.localeCompare(b?.email),
       },
     },
     {
-      title: 'Category',
-      dataIndex: 'category',
+      title: 'Phone No',
+      dataIndex: 'phone',
       sorter: {
-        compare: (a, b) => a.category?.localeCompare(b?.category),
+        compare: (a, b) => a.phone?.localeCompare(b?.phone),
       },
     },
     {
@@ -212,14 +272,9 @@ const Product = () => {
   ];
 
 
-
-
-
-
-
   return (
     <div className="w-full">
-      <Button type="primary" icon={<PlusOutlined />} onClick={() => showDrawer('Add Product')}>
+      <Button type="primary" icon={<PlusOutlined />} onClick={() => showDrawer('Add User')}>
         New
       </Button>
       <div className="border-t mt-2">
@@ -249,11 +304,11 @@ const Product = () => {
         title={drawerTitle}
         open={open} onClose={closeDrawer}
         onSave={handleSave}
-        content={<ProductForm />}
+        content={<UserForm />}
         width={420}
       />
     </div>
   )
 }
 
-export default Product
+export default UserMember
